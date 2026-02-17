@@ -9,7 +9,7 @@ A command-line tool to send WhatsApp messages from your terminal using your pers
 ✅ List recent chats  
 ✅ QR code authentication (scan once, stay logged in)  
 ✅ Local session persistence  
-✅ Clean and intuitive CLI interface  
+✅ Clean and intuitive CLI interface
 
 ## Prerequisites
 
@@ -22,7 +22,7 @@ A command-line tool to send WhatsApp messages from your terminal using your pers
 ### Option 1: Install Globally from npm (Easiest)
 
 ```bash
-npm install -g whatsapp-cli
+npm install -g @adityakul0314/wacli
 ```
 
 Then use `wacli` from anywhere:
@@ -34,7 +34,7 @@ wacli --help
 ### Option 2: Install from GitHub
 
 ```bash
-npm install -g git+https://github.com/YOUR_USERNAME/whatsapp-cli.git
+npm install -g git+https://github.com/Ad1tya-007/whatsapp-cli.git
 ```
 
 ### Option 3: Install from Source
@@ -110,6 +110,7 @@ npx ts-node src/index.ts send -n 14165551234 -m "Hello from CLI"
 ```
 
 **Options:**
+
 - `-n, --number <number>` - Phone number with country code (e.g., 14165551234)
 - `-m, --message <message>` - Message text to send
 
@@ -135,6 +136,7 @@ npx ts-node src/index.ts send -c "John" -m "Hey John!"
 ```
 
 **Options:**
+
 - `-c, --contact <name>` - Contact name to search for (case-insensitive)
 - `-m, --message <message>` - Message text to send
 
@@ -153,6 +155,7 @@ npx ts-node src/index.ts list
 ```
 
 This will show:
+
 - Contact/group names
 - Unread message counts
 - Individual (👤) vs Group (👥) indicators
