@@ -1,5 +1,5 @@
 {
-  "name": "whatsapp-cli",
+  "name": "wacli",
   "version": "1.0.0",
   "description": "A CLI tool to send WhatsApp messages from the terminal",
   "main": "dist/index.js",
@@ -25,12 +25,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/YOUR_USERNAME/whatsapp-cli.git"
+    "url": "https://github.com/Ad1tya-007/whatsapp-cli"
   },
   "bugs": {
-    "url": "https://github.com/YOUR_USERNAME/whatsapp-cli/issues"
+    "url": "https://github.com/Ad1tya-007/whatsapp-cli/issues"
   },
-  "homepage": "https://github.com/YOUR_USERNAME/whatsapp-cli#readme",
+  "homepage": "https://github.com/Ad1tya-007/whatsapp-cli#readme",
   "engines": {
     "node": ">=16.0.0"
   },
