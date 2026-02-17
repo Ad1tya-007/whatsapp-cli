@@ -1,6 +1,6 @@
 {
   "name": "@adityakul0314/wacli",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A CLI tool to send WhatsApp messages from the terminal",
   "main": "dist/index.js",
   "bin": {
