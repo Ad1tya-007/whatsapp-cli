@@ -11,7 +11,7 @@ const program = new Command();
 program
   .name('wacli')
   .description('WhatsApp CLI - Send WhatsApp messages from your terminal')
-  .version('1.0.1');
+  .version('1.0.2');
 
 program
   .command('send')

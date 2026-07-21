@@ -148,7 +148,7 @@ npx ts-node src/index.ts send -c "Mom" -m "Love you!"
 
 ### 3. List Recent Chats
 
-View your 20 most recent WhatsApp chats:
+View your 5 most recent WhatsApp chats:
 
 ```bash
 npx ts-node src/index.ts list

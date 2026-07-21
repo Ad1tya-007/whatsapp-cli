@@ -7,7 +7,9 @@ export function cleanPhoneNumber(phoneNumber: string): string {
   return phoneNumber.replace(/\D/g, '');
 }
 
-function serializedId(id: { _serialized?: string; $1?: string } | null | undefined): string | null {
+function serializedId(
+  id: { _serialized?: string; $1?: string } | null | undefined,
+): string | null {
   if (!id) return null;
   return id._serialized || (id as { $1?: string }).$1 || null;
 }
@@ -17,10 +19,15 @@ function serializedId(id: { _serialized?: string; $1?: string } | null | undefin
  * Prefer getNumberId over manually appending @c.us — WhatsApp may return
  * a LID-based id that @c.us alone cannot address.
  */
-async function resolveChatId(client: Client, phoneNumber: string): Promise<string> {
+async function resolveChatId(
+  client: Client,
+  phoneNumber: string,
+): Promise<string> {
   const cleanNumber = cleanPhoneNumber(phoneNumber);
   const numberId = await client.getNumberId(cleanNumber);
-  const chatId = serializedId(numberId as { _serialized?: string; $1?: string });
+  const chatId = serializedId(
+    numberId as { _serialized?: string; $1?: string },
+  );
 
   if (!chatId) {
     throw new Error(`Number ${phoneNumber} is not registered on WhatsApp`);
@@ -35,7 +42,7 @@ async function resolveChatId(client: Client, phoneNumber: string): Promise<strin
 export async function sendMessage(
   client: Client,
   phoneNumber: string,
-  message: string
+  message: string,
 ): Promise<void> {
   try {
     console.log(`\n📤 Preparing to send message to ${phoneNumber}...`);
@@ -50,7 +57,9 @@ export async function sendMessage(
     if (result && result.id) {
       console.log('✅ Message sent successfully!');
       console.log(`   Message ID: ${result.id.id}`);
-      console.log(`   Timestamp: ${new Date(result.timestamp * 1000).toLocaleString()}`);
+      console.log(
+        `   Timestamp: ${new Date(result.timestamp * 1000).toLocaleString()}`,
+      );
     } else {
       throw new Error('Message sending failed - no confirmation received');
     }
@@ -70,7 +79,7 @@ export async function sendMessage(
 export async function sendMessageByName(
   client: Client,
   contactName: string,
-  message: string
+  message: string,
 ): Promise<void> {
   try {
     console.log(`\n🔍 Searching for contact: ${contactName}...`);
@@ -80,14 +89,16 @@ export async function sendMessageByName(
     const contact = contacts.find(
       (c) =>
         c.name?.toLowerCase().includes(contactName.toLowerCase()) ||
-        c.pushname?.toLowerCase().includes(contactName.toLowerCase())
+        c.pushname?.toLowerCase().includes(contactName.toLowerCase()),
     );
 
     if (!contact) {
       throw new Error(`Contact "${contactName}" not found`);
     }
 
-    const chatId = serializedId(contact.id as { _serialized?: string; $1?: string });
+    const chatId = serializedId(
+      contact.id as { _serialized?: string; $1?: string },
+    );
     if (!chatId) {
       throw new Error(`Contact "${contactName}" has no valid WhatsApp ID`);
     }
@@ -101,7 +112,9 @@ export async function sendMessageByName(
     if (result && result.id) {
       console.log('✅ Message sent successfully!');
       console.log(`   Message ID: ${result.id.id}`);
-      console.log(`   Timestamp: ${new Date(result.timestamp * 1000).toLocaleString()}`);
+      console.log(
+        `   Timestamp: ${new Date(result.timestamp * 1000).toLocaleString()}`,
+      );
     } else {
       throw new Error('Message sending failed - no confirmation received');
     }
@@ -130,12 +143,16 @@ export async function listChats(client: Client): Promise<void> {
   try {
     console.log('\n📋 Fetching chats...\n');
 
-    const page = (client as Client & { pupPage?: { evaluate: <T>(fn: () => T | Promise<T>) => Promise<T> } }).pupPage;
+    const page = (
+      client as Client & {
+        pupPage?: { evaluate: <T>(fn: () => T | Promise<T>) => Promise<T> };
+      }
+    ).pupPage;
     if (!page) {
       throw new Error('WhatsApp page is not ready');
     }
 
-    const chats = await page.evaluate(() => {
+    const chats = (await page.evaluate(() => {
       // Runs inside WhatsApp Web's Chromium page
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const w = globalThis as any;
@@ -160,9 +177,12 @@ export async function listChats(client: Client): Promise<void> {
             timestamp: chat.t || chat.timestamp || 0,
           };
         })
-        .sort((a: { timestamp: number }, b: { timestamp: number }) => b.timestamp - a.timestamp)
+        .sort(
+          (a: { timestamp: number }, b: { timestamp: number }) =>
+            b.timestamp - a.timestamp,
+        )
         .slice(0, 5);
-    }) as ChatSummary[];
+    })) as ChatSummary[];
 
     if (chats.length === 0) {
       console.log('No chats found.');
@@ -173,7 +193,8 @@ export async function listChats(client: Client): Promise<void> {
 
     chats.forEach((chat, index) => {
       const isGroup = chat.isGroup ? '👥' : '👤';
-      const unread = chat.unreadCount > 0 ? ` (${chat.unreadCount} unread)` : '';
+      const unread =
+        chat.unreadCount > 0 ? ` (${chat.unreadCount} unread)` : '';
       console.log(`${index + 1}. ${isGroup} ${chat.name}${unread}`);
     });
 
