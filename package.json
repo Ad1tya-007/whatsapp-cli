@@ -40,14 +40,14 @@
     "LICENSE"
   ],
   "dependencies": {
-    "whatsapp-web.js": "^1.23.0",
     "commander": "^11.1.0",
-    "qrcode-terminal": "^0.12.0"
+    "qrcode-terminal": "^0.12.0",
+    "whatsapp-web.js": "github:lindionez/whatsapp-web.js#feat/fix-_serialized-id-fallback"
   },
   "devDependencies": {
     "@types/node": "^20.10.6",
     "@types/qrcode-terminal": "^0.12.2",
-    "typescript": "^5.3.3",
-    "ts-node": "^10.9.2"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
   }
 }
