@@ -6,6 +6,7 @@ dist/
 
 # WhatsApp session data
 .wwebjs_auth/
+.wwebjs_auth.broken/
 .wwebjs_cache/
 
 # Environment files
