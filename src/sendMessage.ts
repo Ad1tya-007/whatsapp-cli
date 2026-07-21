@@ -7,11 +7,14 @@ export function cleanPhoneNumber(phoneNumber: string): string {
   return phoneNumber.replace(/\D/g, '');
 }
 
-function serializedId(
+/**
+ * Prefer WhatsApp's `_serialized` id; fall back to `$1` used by some WA Web builds.
+ */
+export function serializedId(
   id: { _serialized?: string; $1?: string } | null | undefined,
 ): string | null {
   if (!id) return null;
-  return id._serialized || (id as { $1?: string }).$1 || null;
+  return id._serialized || id.$1 || null;
 }
 
 /**
@@ -25,9 +28,7 @@ async function resolveChatId(
 ): Promise<string> {
   const cleanNumber = cleanPhoneNumber(phoneNumber);
   const numberId = await client.getNumberId(cleanNumber);
-  const chatId = serializedId(
-    numberId as { _serialized?: string; $1?: string },
-  );
+  const chatId = serializedId(numberId);
 
   if (!chatId) {
     throw new Error(`Number ${phoneNumber} is not registered on WhatsApp`);
