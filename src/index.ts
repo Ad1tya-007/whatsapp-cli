@@ -4,21 +4,29 @@ import { Command } from 'commander';
 import fs from 'fs';
 import path from 'path';
 import { initializeClient, connectClient, destroyClient, AUTH_PATH } from './client';
-import { sendMessage, sendMessageByName, listChats } from './sendMessage';
+import {
+  sendMessage,
+  sendMessageByName,
+  listChats,
+  listContacts,
+  checkNumber,
+  showMe,
+} from './sendMessage';
 
 const program = new Command();
 
 program
   .name('wacli')
   .description('WhatsApp CLI - Send WhatsApp messages from your terminal')
-  .version('1.0.2');
+  .version('1.0.3');
 
 program
   .command('send')
-  .description('Send a WhatsApp message')
+  .description('Send a WhatsApp message or file')
   .option('-n, --number <number>', 'Phone number with country code (e.g., 14165551234)')
   .option('-c, --contact <name>', 'Contact name to search for')
-  .option('-m, --message <message>', 'Message text to send')
+  .option('-m, --message <message>', 'Message text (or caption when sending a file)')
+  .option('-f, --file <path>', 'Path to a file to send (image, document, etc.)')
   .action(async (options) => {
     let client = null;
     try {
@@ -32,8 +40,8 @@ program
         process.exit(1);
       }
 
-      if (!options.message) {
-        console.error('❌ Error: Please provide a message with --message');
+      if (!options.message && !options.file) {
+        console.error('❌ Error: Please provide --message and/or --file');
         process.exit(1);
       }
 
@@ -41,9 +49,14 @@ program
       await connectClient(client);
 
       if (options.number) {
-        await sendMessage(client, options.number, options.message);
+        await sendMessage(client, options.number, options.message, options.file);
       } else if (options.contact) {
-        await sendMessageByName(client, options.contact, options.message);
+        await sendMessageByName(
+          client,
+          options.contact,
+          options.message,
+          options.file,
+        );
       }
 
       console.log('⏳ Finalizing...');
@@ -67,18 +80,95 @@ program
 program
   .command('list')
   .description('List recent WhatsApp chats')
-  .action(async () => {
+  .option('-l, --limit <n>', 'Number of chats to show', '5')
+  .action(async (options) => {
     let client = null;
     try {
+      const limit = Number.parseInt(options.limit, 10);
+      if (Number.isNaN(limit) || limit < 1) {
+        console.error('❌ Error: --limit must be a positive number');
+        process.exit(1);
+      }
+
       client = initializeClient();
       await connectClient(client);
-      await listChats(client);
+      await listChats(client, limit);
       process.exitCode = 0;
     } catch (error) {
       if (error instanceof Error && error.message) {
         console.error('❌ Failed to list chats:', error.message);
       } else {
         console.error('❌ Failed to list chats');
+      }
+      process.exitCode = 1;
+    } finally {
+      await destroyClient(client);
+      process.exit(process.exitCode ?? 1);
+    }
+  });
+
+program
+  .command('contacts')
+  .description('List saved WhatsApp contacts')
+  .action(async () => {
+    let client = null;
+    try {
+      client = initializeClient();
+      await connectClient(client);
+      await listContacts(client);
+      process.exitCode = 0;
+    } catch (error) {
+      if (error instanceof Error && error.message) {
+        console.error('❌ Failed to list contacts:', error.message);
+      } else {
+        console.error('❌ Failed to list contacts');
+      }
+      process.exitCode = 1;
+    } finally {
+      await destroyClient(client);
+      process.exit(process.exitCode ?? 1);
+    }
+  });
+
+program
+  .command('check')
+  .description('Check if a phone number is registered on WhatsApp')
+  .requiredOption('-n, --number <number>', 'Phone number with country code (e.g., 14165551234)')
+  .action(async (options) => {
+    let client = null;
+    try {
+      client = initializeClient();
+      await connectClient(client);
+      await checkNumber(client, options.number);
+      process.exitCode = 0;
+    } catch (error) {
+      if (error instanceof Error && error.message) {
+        console.error('❌ Failed to check number:', error.message);
+      } else {
+        console.error('❌ Failed to check number');
+      }
+      process.exitCode = 1;
+    } finally {
+      await destroyClient(client);
+      process.exit(process.exitCode ?? 1);
+    }
+  });
+
+program
+  .command('me')
+  .description('Show the logged-in WhatsApp account')
+  .action(async () => {
+    let client = null;
+    try {
+      client = initializeClient();
+      await connectClient(client);
+      await showMe(client);
+      process.exitCode = 0;
+    } catch (error) {
+      if (error instanceof Error && error.message) {
+        console.error('❌ Failed to get account info:', error.message);
+      } else {
+        console.error('❌ Failed to get account info');
       }
       process.exitCode = 1;
     } finally {
