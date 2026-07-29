@@ -29,3 +29,6 @@ Thumbs.db
 
 # Text files
 *.txt
+
+# Test files
+/test_files/

@@ -48,9 +48,11 @@ jobs:
       - name: Verify publishable package contents
         run: |
           npm pack --dry-run
-          test -f dist/index.js
-          test -f dist/client.js
-          test -f dist/sendMessage.js
+          test -x dist/index.js
+          test -f dist/cli/program.js
+          test -f dist/client/index.js
+          test -f dist/services/messaging.js
+          test -f dist/services/media.js
 
       - name: CLI smoke check
         run: |

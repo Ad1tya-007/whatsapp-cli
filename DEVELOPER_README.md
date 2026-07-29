@@ -43,24 +43,52 @@ wacli --help
 ```
 whatsapp-cli/
 ├── src/
-│   ├── client.ts        # Client init, QR auth, connect/destroy, ~/.wacli session
-│   ├── sendMessage.ts   # Send, list, contacts, check, me helpers
-│   └── index.ts         # Commander CLI entry point
-├── updates/             # Per-version release notes
-├── DEPLOYMENT.md        # Publish checklist
+│   ├── index.ts              # CLI entry (shebang + parse)
+│   ├── cli/
+│   │   ├── program.ts        # Commander setup + version
+│   │   ├── withClient.ts     # Shared connect → action → destroy → exit
+│   │   └── commands/         # Per-command registration
+│   ├── client/
+│   │   ├── index.ts          # initialize / connect / destroy
+│   │   ├── session.ts        # ~/.wacli auth path, migrate, locks
+│   │   └── chrome.ts         # browser path + version helpers
+│   ├── services/
+│   │   ├── messaging.ts      # send by number / by contact
+│   │   ├── contacts.ts       # saved-first resolve + picker + list
+│   │   ├── media.ts          # file validation + supported media send
+│   │   ├── chats.ts          # list chats (Store evaluate)
+│   │   └── account.ts        # check + me
+│   └── utils/
+│       ├── phone.ts
+│       └── ids.ts
+├── updates/                  # Per-version release notes
+├── DEPLOYMENT.md
 ├── package.json
 └── tsconfig.json
 ```
 
 ## How it works
 
-1. **whatsapp-web.js** drives a headless Chromium session against WhatsApp Web.
+1. **whatsapp-web.js** drives a headless Chromium/Chrome session against WhatsApp Web.
 2. **LocalAuth** stores the session under `~/.wacli` (migrates legacy `./.wwebjs_auth` when present).
 3. **qrcode-terminal** prints the QR code on first login.
-4. **commander** defines CLI commands in `src/index.ts`.
-5. Each command follows: `initializeClient` → `connectClient` → action → `destroyClient` → `process.exit`.
+4. **commander** defines CLI commands under `src/cli/`.
+5. Most commands use `withClient`: `initializeClient` → `connectClient` → action → `destroyClient` → `process.exit`.
 
 Phone numbers are resolved with `getNumberId()` (not hard-coded `number@c.us`) so LID / serialized IDs from current WhatsApp Web work correctly.
+
+### Contact resolution (`-c`)
+
+1. Match saved contacts (`isMyContact` + saved `name` includes query; exact name preferred).
+2. If none: collect up to 5 name/pushname matches and prompt with `@inquirer/select` (dynamic import; package is ESM-only).
+
+### Media send (`-f`)
+
+`services/media.ts` validates files before the WhatsApp client starts. Video extensions and `video/*` MIME types are rejected. Videos are not sent as playable media or as documents.
+
+### Browser selection
+
+Every command uses the same browser: system Chrome when present, otherwise puppeteer's bundled Chromium. All commands share the `~/.wacli/session` profile, and Chrome refuses a profile written by a newer build, so mixing browsers would break the session. `initializeClient` compares the profile's `Last Version` against the browser and fails fast with an actionable message instead of hanging for 30s.
 
 ## Dependency note (whatsapp-web.js fork)
 
@@ -80,7 +108,7 @@ WhatsApp Web renamed `_serialized` → `$1` on some ID objects. The fork adds a 
 
 | Path | Role |
 |------|------|
-| `~/.wacli` | Current auth directory (`AUTH_PATH` in `client.ts`) |
+| `~/.wacli` | Current auth directory (`AUTH_PATH` in `client/session.ts`) |
 | `./.wwebjs_auth` | Legacy path; migrated into `~/.wacli` when possible |
 
 `logout` deletes local session files only. It does not call `client.logout()` on WhatsApp’s servers — remove the linked device on your phone if needed.
@@ -91,14 +119,14 @@ Stale Chrome `SingletonLock` files from unclean exits are cleared on init so the
 
 | Command | Implementation |
 |---------|----------------|
-| `send` | `sendMessage` / `sendMessageByName` — text and/or `MessageMedia.fromFilePath` |
-| `list` | Store evaluate + `-l/--limit` |
-| `contacts` | `client.getContacts()` |
-| `check` | `client.getNumberId()` |
-| `me` | `client.info` |
+| `send` | `services/messaging` + `services/media` + contact resolve |
+| `list` | `services/chats` Store evaluate + `-l/--limit` |
+| `contacts` | `services/contacts` |
+| `check` | `services/account` → `getNumberId()` |
+| `me` | `services/account` → `client.info` |
 | `logout` | `fs.rmSync` on auth path |
 
-Bump the version in both `package.json` and `program.version(...)` in `src/index.ts` when releasing. Add notes under `updates/`.
+Bump the version in both `package.json` and `program.version(...)` in `src/cli/program.ts` when releasing. Add notes under `updates/`.
 
 ## Publishing
 
@@ -106,5 +134,6 @@ See [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ## Release history
 
+- [updates/v1.0.4.md](updates/v1.0.4.md) — saved-first `-c`, interactive picker, video rejection, src restructure
 - [updates/v1.0.3.md](updates/v1.0.3.md) — contacts, check, me, media send, list limit, dual READMEs
 - [updates/v1.0.2.md](updates/v1.0.2.md) — send/list reliability, `~/.wacli`, fork pin
