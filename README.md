@@ -43,17 +43,23 @@ Use a saved contact name instead of a number:
 wacli send -c "Mom" -m "Love you!"
 ```
 
+`-c` looks in your **saved contacts** first. If nothing matches, you get an interactive list of up to 5 matches (name + number) — use the arrow keys and Enter to choose.
+
 ### Send a file
+
+Send a supported file such as an image or document:
 
 ```bash
 wacli send -n 14165551234 -f ./photo.jpg
 ```
 
-Optional caption:
+Optional caption with `-m` when sending a file:
 
 ```bash
 wacli send -c "Mom" -f ./photo.jpg -m "From today"
 ```
+
+**Videos are not supported.** `wacli` rejects video files and will not send them as playable media or as documents.
 
 ### List recent chats
 
@@ -108,6 +114,8 @@ Always include the country code, with no `+`, spaces, or dashes:
 **QR code hard to scan** — Make the terminal window larger and try again.
 
 **“Number not registered”** — Double-check the country code and remove spaces or punctuation.
+
+**Video file rejected** — Video sending is intentionally unsupported, including sending a video as a document.
 
 **Session problems** — Log out and run any command again to re-scan:
 

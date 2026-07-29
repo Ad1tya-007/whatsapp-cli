@@ -23,7 +23,7 @@ npm run dev -- me
 npm run dev -- send -n 14165551234 -m "Hello!"
 npm run dev -- send -c "John" -m "Hey John!"
 
-# Send a file (optional caption)
+# Send a supported file (optional caption; videos are not allowed)
 npm run dev -- send -n 14165551234 -f ./photo.jpg -m "Caption"
 
 # List chats (default 5; use -l for more)
