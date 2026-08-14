@@ -42,7 +42,7 @@
   ],
   "dependencies": {
     "@inquirer/select": "^5.2.1",
-    "commander": "^11.1.0",
+    "commander": "^15.0.0",
     "qrcode-terminal": "^0.12.0",
     "whatsapp-web.js": "github:lindionez/whatsapp-web.js#feat/fix-_serialized-id-fallback"
   },
