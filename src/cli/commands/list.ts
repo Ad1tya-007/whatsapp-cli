@@ -1,21 +1,34 @@
-import { Command } from 'commander';
-import { withClient } from '../withClient';
 import { listChats } from '../../services/chats';
+import type { CommandDefinition } from '../command';
 
-export function registerListCommand(program: Command): void {
-  program
-    .command('list')
-    .description('List recent WhatsApp chats')
-    .option('-l, --limit <n>', 'Number of chats to show', '5')
-    .action(async (options) => {
-      const limit = Number.parseInt(options.limit, 10);
-      if (Number.isNaN(limit) || limit < 1) {
-        console.error('❌ Error: --limit must be a positive number');
-        process.exit(1);
-      }
+type ListOptions = {
+  limit: string;
+};
 
-      await withClient((client) => listChats(client, limit), {
-        failureLabel: 'list chats',
-      });
-    });
-}
+const list: CommandDefinition<ListOptions> = {
+  name: 'list',
+  description: 'List recent WhatsApp chats',
+  failureLabel: 'list chats',
+  options: [
+    {
+      flags: '-l, --limit <n>',
+      description: 'Number of chats to show',
+      defaultValue: '5',
+    },
+  ],
+  validate(options) {
+    const limit = Number.parseInt(options.limit, 10);
+    if (Number.isNaN(limit) || limit < 1) {
+      throw new Error('--limit must be a positive number');
+    }
+  },
+  async run(client, options) {
+    if (!client) {
+      throw new Error('WhatsApp client is not available');
+    }
+    const limit = Number.parseInt(options.limit, 10);
+    await listChats(client, limit);
+  },
+};
+
+export default list;

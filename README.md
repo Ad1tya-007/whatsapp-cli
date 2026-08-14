@@ -87,10 +87,13 @@ See if a phone number is on WhatsApp (does not send a message):
 wacli check -n 14165551234
 ```
 
-### Who am I logged in as?
+### Log in / who am I?
+
+The first WhatsApp command prints a QR code if you are not logged in. `me` and `login` do the same thing:
 
 ```bash
 wacli me
+wacli login
 ```
 
 ### Log out

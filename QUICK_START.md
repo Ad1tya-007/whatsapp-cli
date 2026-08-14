@@ -1,7 +1,7 @@
 # WhatsApp CLI — Quick Start
 
 **End users:** install and use `wacli` from [README.md](README.md).  
-**Developers:** build and contribute via [DEVELOPER_README.md](DEVELOPER_README.md).
+**Developers:** build and contribute via [DEVELOPER_README.md](DEVELOPER_README.md). To add a command, see [CREATING_COMMANDS.md](CREATING_COMMANDS.md).
 
 ## Setup (from source)
 
@@ -14,6 +14,7 @@ First run — scan the QR code with WhatsApp (**Settings → Linked Devices → 
 
 ```bash
 npm run dev -- me
+# or: npm run dev -- login
 ```
 
 ## Common commands

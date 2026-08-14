@@ -1,14 +1,17 @@
-import { Command } from 'commander';
-import { withClient } from '../withClient';
 import { showMe } from '../../services/account';
+import type { CommandDefinition } from '../command';
 
-export function registerMeCommand(program: Command): void {
-  program
-    .command('me')
-    .description('Show the logged-in WhatsApp account')
-    .action(async () => {
-      await withClient((client) => showMe(client), {
-        failureLabel: 'get account info',
-      });
-    });
-}
+const me: CommandDefinition = {
+  name: 'me',
+  aliases: ['login'],
+  description: 'Log in (scan QR if needed) and show the WhatsApp account',
+  failureLabel: 'get account info',
+  async run(client) {
+    if (!client) {
+      throw new Error('WhatsApp client is not available');
+    }
+    await showMe(client);
+  },
+};
+
+export default me;
