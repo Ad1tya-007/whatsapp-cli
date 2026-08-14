@@ -1,6 +1,6 @@
 # Developer guide — wacli
 
-Technical notes for building and contributing to this project. End users should start with [README.md](README.md).
+Technical notes for building and contributing to this project. End users should start with [README.md](README.md). To add a CLI command, see [CREATING_COMMANDS.md](CREATING_COMMANDS.md).
 
 ## Requirements
 
@@ -45,9 +45,11 @@ whatsapp-cli/
 ├── src/
 │   ├── index.ts              # CLI entry (shebang + parse)
 │   ├── cli/
-│   │   ├── program.ts        # Commander setup + version
+│   │   ├── program.ts        # Commander adapter + version from package.json
+│   │   ├── command.ts        # CommandDefinition type
+│   │   ├── registry.ts       # Auto-load commands/ into a Map
 │   │   ├── withClient.ts     # Shared connect → action → destroy → exit
-│   │   └── commands/         # Per-command registration
+│   │   └── commands/         # One file per command (default export)
 │   ├── client/
 │   │   ├── index.ts          # initialize / connect / destroy
 │   │   ├── session.ts        # ~/.wacli auth path, migrate, locks
@@ -62,6 +64,7 @@ whatsapp-cli/
 │       ├── phone.ts
 │       └── ids.ts
 ├── updates/                  # Per-version release notes
+├── CREATING_COMMANDS.md      # Step-by-step: add a CLI command
 ├── DEPLOYMENT.md
 ├── package.json
 └── tsconfig.json
@@ -72,15 +75,22 @@ whatsapp-cli/
 1. **whatsapp-web.js** drives a headless Chromium/Chrome session against WhatsApp Web.
 2. **LocalAuth** stores the session under `~/.wacli` (migrates legacy `./.wwebjs_auth` when present).
 3. **qrcode-terminal** prints the QR code on first login.
-4. **commander** defines CLI commands under `src/cli/`.
-5. Most commands use `withClient`: `initializeClient` → `connectClient` → action → `destroyClient` → `process.exit`.
+4. **commander** parses argv. **registry** loads each `src/cli/commands/*.ts` module into a Map.
+5. The adapter runs `validate` (if present), then `withClient` → `command.run` (unless `needsClient: false`).
+6. `withClient`: `initializeClient` → `connectClient` → action → `destroyClient` → `process.exit`.
+
+### Adding a command
+
+See [CREATING_COMMANDS.md](CREATING_COMMANDS.md) for a step-by-step walkthrough. Short version: add `src/cli/commands/<name>.ts` that default-exports a `CommandDefinition`. The registry loads it automatically — do not edit `program.ts`.
 
 Phone numbers are resolved with `getNumberId()` (not hard-coded `number@c.us`) so LID / serialized IDs from current WhatsApp Web work correctly.
 
 ### Contact resolution (`-c`)
 
-1. Match saved contacts (`isMyContact` + saved `name` includes query; exact name preferred).
-2. If none: collect up to 5 name/pushname matches and prompt with `@inquirer/select` (dynamic import; package is ESM-only).
+1. Read contacts and 1:1 chats from WhatsApp Web’s Store (`WAWebCollections`), not `client.getContacts()` (same class of ID/name breakage as `getChats()`).
+2. Match saved contacts (`isMyContact` + saved `name` / `shortName`; exact name preferred). Also match `pushname` / `verifiedName`, including first-name prefixes (`Matt` → `Matthew`).
+3. If none: collect up to 5 candidates in an interactive picker. A single match is used without prompting.
+4. After a fresh login, retry for a few seconds while the contact Store finishes syncing.
 
 ### Media send (`-f`)
 
@@ -123,10 +133,10 @@ Stale Chrome `SingletonLock` files from unclean exits are cleared on init so the
 | `list` | `services/chats` Store evaluate + `-l/--limit` |
 | `contacts` | `services/contacts` |
 | `check` | `services/account` → `getNumberId()` |
-| `me` | `services/account` → `client.info` |
+| `me` / `login` | `services/account` → `client.info` |
 | `logout` | `fs.rmSync` on auth path |
 
-Bump the version in both `package.json` and `program.version(...)` in `src/cli/program.ts` when releasing. Add notes under `updates/`.
+Bump the version in `package.json` when releasing (`--version` is read from it). Add notes under `updates/`.
 
 ## Publishing
 
@@ -134,6 +144,7 @@ See [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ## Release history
 
+- [updates/v1.0.5.md](updates/v1.0.5.md) — command registry layer
 - [updates/v1.0.4.md](updates/v1.0.4.md) — saved-first `-c`, interactive picker, video rejection, src restructure
 - [updates/v1.0.3.md](updates/v1.0.3.md) — contacts, check, me, media send, list limit, dual READMEs
 - [updates/v1.0.2.md](updates/v1.0.2.md) — send/list reliability, `~/.wacli`, fork pin
